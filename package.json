@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-groupise",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Community nodes for connecting n8n to a self-hosted Groupise API.",
   "license": "MIT",
   "author": "Groupise contributors",
