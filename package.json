@@ -14,7 +14,7 @@
   "homepage": "https://github.com/dicodetech-dev/n8n-nodes-groupwise",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dicodetech-dev/n8n-nodes-groupwise.git"
+    "url": "git+https://github.com/dicodetech-dev/n8n-nodes-groupwise.git"
   },
   "type": "module",
   "sideEffects": false,
