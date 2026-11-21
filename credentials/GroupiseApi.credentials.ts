@@ -9,7 +9,7 @@ export class GroupiseApi implements ICredentialType {
   test: ICredentialTestRequest = {
     request: {
       method: 'GET',
-      url: '={{$credentials.baseUrl}}/health/ready',
+      url: '={{$credentials.baseUrl}}/auth/me',
       headers: {
         Authorization: '=Bearer {{$credentials.token}}',
       },

@@ -29,4 +29,14 @@ describe('Groupise node registration', () => {
     expect(GroupiseTrigger.name).toBe('GroupiseTrigger');
     expect(GroupiseSend.name).toBe('GroupiseSend');
   });
+
+  it('tests API credentials against the authenticated user endpoint', () => {
+    const request = new GroupiseApi().test.request;
+
+    expect(request.method).toBe('GET');
+    expect(request.url).toBe('={{$credentials.baseUrl}}/auth/me');
+    expect(request.headers).toMatchObject({
+      Authorization: '=Bearer {{$credentials.token}}',
+    });
+  });
 });

@@ -23,6 +23,7 @@ export class GroupiseSend implements INodeType {
     group: ['output'],
     version: 1,
     description: 'Sends a message to a Groupise chat through the Laravel API',
+    documentationUrl: 'https://github.com/dicodetech-dev/n8n-nodes-groupwise#groupise-send-message',
     subtitle: '={{$parameter["operation"]}}',
     usableAsTool: true,
     defaults: { name: 'Groupise Send Message' },

@@ -13,12 +13,25 @@ const envelope = {
   version: 1,
   occurred_at: '2026-03-10T09:00:00Z',
   data: {
+    connection_id: '019a0000-0000-7000-8000-000000000004',
     chat_id: '019a0000-0000-7000-8000-000000000002',
+    chat_type: 'group',
+    wa_message_id: 'wa-message-1',
+    body: 'Deployment is at 15:00.',
   },
 };
 const rawBody = JSON.stringify(envelope);
 
 describe('GroupiseTrigger', () => {
+  it('registers a full production webhook path', () => {
+    expect(new GroupiseTrigger().description.webhooks?.[0]).toMatchObject({
+      httpMethod: 'POST',
+      path: 'groupise',
+      isFullPath: true,
+      responseMode: 'onReceived',
+    });
+  });
+
   it('emits a verified envelope without exposing verification material', async () => {
     const replayState: IDataObject = {};
     const result = await runWebhook({
@@ -34,6 +47,8 @@ describe('GroupiseTrigger', () => {
       event_id: envelope.id,
       delivery_id: 'delivery-1',
       type: 'message.received',
+      version: 1,
+      data: { chat_id: '019a0000-0000-7000-8000-000000000002' },
     });
     expect(JSON.stringify(result)).not.toContain(secret);
     expect(JSON.stringify(result)).not.toContain('sha256=');

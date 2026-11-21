@@ -23,6 +23,8 @@ export class GroupiseTrigger implements INodeType {
     group: ['trigger'],
     version: 1,
     description: 'Starts a workflow when Laravel delivers a signed Groupise webhook',
+    documentationUrl:
+      'https://github.com/dicodetech-dev/n8n-nodes-groupwise#trigger-output-and-filters',
     subtitle: 'Signed Laravel webhooks',
     defaults: { name: 'Groupise Trigger' },
     inputs: [],
@@ -35,6 +37,7 @@ export class GroupiseTrigger implements INodeType {
         name: 'default',
         httpMethod: 'POST',
         path: 'groupise',
+        isFullPath: true,
         responseMode: 'onReceived',
       },
     ],
