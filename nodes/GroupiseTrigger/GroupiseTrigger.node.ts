@@ -19,7 +19,7 @@ export class GroupiseTrigger implements INodeType {
   description: INodeTypeDescription = {
     displayName: 'Groupise Trigger',
     name: 'groupiseTrigger',
-    icon: 'file:groupise.svg',
+    icon: { light: 'file:groupise.svg', dark: 'file:groupise.dark.svg' },
     group: ['trigger'],
     version: 1,
     description: 'Starts a workflow when Laravel delivers a signed Groupise webhook',

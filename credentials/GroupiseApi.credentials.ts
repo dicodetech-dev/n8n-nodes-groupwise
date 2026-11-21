@@ -3,7 +3,7 @@ import type { ICredentialTestRequest, ICredentialType, Icon, INodeProperties } f
 export class GroupiseApi implements ICredentialType {
   name = 'groupiseApi';
   displayName = 'Groupise API';
-  icon: Icon = 'file:groupise.svg';
+  icon: Icon = { light: 'file:groupise.svg', dark: 'file:groupise.dark.svg' };
   documentationUrl = 'https://github.com/dicodetech-dev/n8n-nodes-groupwise#readme';
 
   test: ICredentialTestRequest = {

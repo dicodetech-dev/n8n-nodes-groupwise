@@ -19,7 +19,7 @@ export class GroupiseSend implements INodeType {
   description: INodeTypeDescription = {
     displayName: 'Groupise Send Message',
     name: 'groupiseSend',
-    icon: 'file:groupise.svg',
+    icon: { light: 'file:groupise.svg', dark: 'file:groupise.dark.svg' },
     group: ['output'],
     version: 1,
     description: 'Sends a message to a Groupise chat through the Laravel API',
@@ -34,6 +34,7 @@ export class GroupiseSend implements INodeType {
         displayName: 'Operation',
         name: 'operation',
         type: 'options',
+        noDataExpression: true,
         options: [
           {
             name: 'Send Message',

@@ -3,7 +3,7 @@ import type { ICredentialType, Icon, INodeProperties } from 'n8n-workflow';
 export class GroupiseWebhookApi implements ICredentialType {
   name = 'groupiseWebhookApi';
   displayName = 'Groupise Webhook API';
-  icon: Icon = 'file:groupise.svg';
+  icon: Icon = { light: 'file:groupise.svg', dark: 'file:groupise.dark.svg' };
   documentationUrl = 'https://github.com/dicodetech-dev/n8n-nodes-groupwise#readme';
 
   properties: INodeProperties[] = [
