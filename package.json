@@ -1,9 +1,12 @@
 {
   "name": "n8n-nodes-groupise",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Community nodes for connecting n8n to a self-hosted Groupise API.",
   "license": "MIT",
-  "author": "Groupise contributors",
+  "author": {
+    "name": "Groupise contributors",
+    "email": "dicodetech@gmail.com"
+  },
   "keywords": [
     "n8n-community-node-package",
     "n8n",
@@ -35,7 +38,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json && node scripts/copy-icons.mjs",
     "dev": "tsc -p tsconfig.build.json --watch",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -44,11 +47,11 @@
     "n8nNodesApiVersion": 1,
     "credentials": [
       "dist/credentials/GroupiseApi.credentials.js",
-      "dist/credentials/GroupiseWebhook.credentials.js"
+      "dist/credentials/GroupiseWebhookApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/GroupiseTrigger.node.js",
-      "dist/nodes/GroupiseSend.node.js"
+      "dist/nodes/GroupiseTrigger/GroupiseTrigger.node.js",
+      "dist/nodes/GroupiseSend/GroupiseSend.node.js"
     ]
   },
   "devDependencies": {
@@ -58,7 +61,7 @@
     "vitest": "3.2.4"
   },
   "peerDependencies": {
-    "n8n-workflow": ">=2.0.0"
+    "n8n-workflow": "*"
   },
   "publishConfig": {
     "access": "public",

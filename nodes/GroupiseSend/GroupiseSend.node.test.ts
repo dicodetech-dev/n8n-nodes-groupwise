@@ -5,16 +5,15 @@ import { GroupiseSend } from './GroupiseSend.node.js';
 const connectionId = '019a0000-0000-7000-8000-000000000003';
 const chatId = '019a0000-0000-7000-8000-000000000002';
 const apiToken = '<api-token-placeholder>';
-const originalFetch = globalThis.fetch;
 
 afterEach(() => {
-  globalThis.fetch = originalFetch;
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
 describe('GroupiseSend', () => {
   it('sends a validated request with a derived idempotency key', async () => {
-    const fetchMock = vi.fn((...args: Parameters<typeof fetch>) => {
+    const fetchMock = vi.fn(async (...args: Parameters<typeof fetch>) => {
       void args;
       return Promise.resolve(
         new Response(JSON.stringify({ data: sentMessage() }), {
@@ -23,7 +22,7 @@ describe('GroupiseSend', () => {
         }),
       );
     });
-    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchMock);
 
     const result = await runSend(
       {
@@ -53,11 +52,12 @@ describe('GroupiseSend', () => {
       id: sentMessage().id,
       idempotency_key: 'delivery-1',
     });
+    expect(result[0]?.[0]?.pairedItem).toEqual({ item: 0 });
   });
 
   it('rejects invalid parameters before making a request', async () => {
     const fetchMock = vi.fn(async () => new Response('{}', { status: 200 }));
-    globalThis.fetch = fetchMock as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchMock);
 
     await expect(
       runSend(
@@ -71,7 +71,7 @@ describe('GroupiseSend', () => {
         },
         {},
       ),
-    ).rejects.toMatchObject({ code: 'invalid_parameters' });
+    ).rejects.toThrow('Groupise send parameters are invalid.');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
@@ -89,6 +89,7 @@ async function runSend(
   const context = {
     getCredentials: async () => ({ baseUrl: 'https://groupise.invalid/api/v1', token: apiToken }),
     getInputData: () => [{ json }],
+    getNode: () => ({ name: 'Groupise Send Message', type: 'n8n-nodes-groupise.groupiseSend' }),
     getNodeParameter: (name: string, _itemIndex: number, fallbackValue?: unknown) =>
       parameters[name] ?? fallbackValue,
   } as unknown as IExecuteFunctions;

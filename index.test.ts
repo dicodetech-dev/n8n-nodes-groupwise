@@ -3,7 +3,7 @@ import {
   GroupiseApi,
   GroupiseSend,
   GroupiseTrigger,
-  GroupiseWebhook,
+  GroupiseWebhookApi,
   credentialTypes,
   nodeTypes,
 } from './index.js';
@@ -12,7 +12,7 @@ describe('Groupise node registration', () => {
   it('registers both credentials', () => {
     expect(credentialTypes.map((credential) => credential.name)).toEqual([
       'groupiseApi',
-      'groupiseWebhook',
+      'groupiseWebhookApi',
     ]);
   });
 
@@ -25,7 +25,7 @@ describe('Groupise node registration', () => {
 
   it('uses class names that match the custom node file names', () => {
     expect(GroupiseApi.name).toBe('GroupiseApi');
-    expect(GroupiseWebhook.name).toBe('GroupiseWebhook');
+    expect(GroupiseWebhookApi.name).toBe('GroupiseWebhookApi');
     expect(GroupiseTrigger.name).toBe('GroupiseTrigger');
     expect(GroupiseSend.name).toBe('GroupiseSend');
   });

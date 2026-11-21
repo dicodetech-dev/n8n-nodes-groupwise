@@ -1,13 +1,17 @@
-import type {
-  IDataObject,
-  IExecuteFunctions,
-  INodeExecutionData,
-  INodeType,
-  INodeTypeDescription,
+import {
+  NodeApiError,
+  NodeConnectionTypes,
+  NodeOperationError,
+  type IDataObject,
+  type IExecuteFunctions,
+  type INode,
+  type INodeExecutionData,
+  type INodeType,
+  type INodeTypeDescription,
+  type JsonObject,
 } from 'n8n-workflow';
-import { GroupiseNodeError } from '../errors.js';
-import type { GroupiseApiCredentials } from '../types.js';
-import { parseSendMessageRequest, type SendMessageRequest } from '../validation.js';
+import type { GroupiseApiCredentials } from '../../types.js';
+import { parseSendMessageRequest, type SendMessageRequest } from '../../validation.js';
 
 const REQUEST_TIMEOUT_MS = 30_000;
 
@@ -15,14 +19,31 @@ export class GroupiseSend implements INodeType {
   description: INodeTypeDescription = {
     displayName: 'Groupise Send Message',
     name: 'groupiseSend',
+    icon: 'file:groupise.svg',
     group: ['output'],
     version: 1,
-    description: 'Sends a message to a Groupise chat through the Laravel API.',
+    description: 'Sends a message to a Groupise chat through the Laravel API',
+    subtitle: '={{$parameter["operation"]}}',
+    usableAsTool: true,
     defaults: { name: 'Groupise Send Message' },
-    inputs: ['main'],
-    outputs: ['main'],
+    inputs: [NodeConnectionTypes.Main],
+    outputs: [NodeConnectionTypes.Main],
     credentials: [{ name: 'groupiseApi', required: true }],
     properties: [
+      {
+        displayName: 'Operation',
+        name: 'operation',
+        type: 'options',
+        options: [
+          {
+            name: 'Send Message',
+            value: 'sendMessage',
+            action: 'Send a message',
+            description: 'Send a message to a Groupise chat',
+          },
+        ],
+        default: 'sendMessage',
+      },
       {
         displayName: 'Connection ID',
         name: 'connectionId',
@@ -62,19 +83,20 @@ export class GroupiseSend implements INodeType {
         name: 'idempotencyKey',
         type: 'string',
         default: '={{ $json.delivery_id || $json.event_id }}',
-        description: 'Stable key derived from the verified webhook delivery or event ID.',
+        description: 'Stable key derived from the verified webhook delivery or event ID',
       },
     ],
   };
 
   async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
     const credentials = await this.getCredentials<GroupiseApiCredentials>('groupiseApi');
-    const baseUrl = normalizeBaseUrl(credentials);
+    const node = this.getNode();
     const inputData = this.getInputData();
     const returnData: INodeExecutionData[] = [];
 
     for (let itemIndex = 0; itemIndex < inputData.length; itemIndex += 1) {
       const item = inputData[itemIndex];
+      const baseUrl = normalizeBaseUrl(credentials, node, itemIndex);
       const request = parseSendMessageRequest({
         connection_id: stringParameter(this, 'connectionId', itemIndex),
         chat_id: stringParameter(this, 'chatId', itemIndex),
@@ -91,7 +113,7 @@ export class GroupiseSend implements INodeType {
         })(),
       });
       if (request === undefined) {
-        throw new GroupiseNodeError('invalid_parameters', 'Groupise send parameters are invalid.');
+        throw new NodeOperationError(node, 'Groupise send parameters are invalid.', { itemIndex });
       }
 
       const idempotencyKey =
@@ -100,12 +122,20 @@ export class GroupiseSend implements INodeType {
         inputString(item, 'event_id') ??
         request.client_message_id;
       if (idempotencyKey === undefined || idempotencyKey.length === 0) {
-        throw new GroupiseNodeError('invalid_parameters', 'An idempotency key is required.');
+        throw new NodeOperationError(node, 'An idempotency key is required.', { itemIndex });
       }
 
-      const sent = await sendMessage(baseUrl, credentials.token, request, idempotencyKey);
+      const sent = await sendMessage(
+        this,
+        baseUrl,
+        credentials.token,
+        request,
+        idempotencyKey,
+        itemIndex,
+      );
       returnData.push({
         json: { ...(sent as IDataObject), idempotency_key: idempotencyKey },
+        pairedItem: { item: itemIndex },
       });
     }
 
@@ -113,22 +143,28 @@ export class GroupiseSend implements INodeType {
   }
 }
 
-function normalizeBaseUrl(credentials: GroupiseApiCredentials): string {
+function normalizeBaseUrl(
+  credentials: GroupiseApiCredentials,
+  node: INode,
+  itemIndex: number,
+): string {
   if (typeof credentials.baseUrl !== 'string' || typeof credentials.token !== 'string') {
-    throw new GroupiseNodeError('invalid_credential', 'Groupise API credential is incomplete.');
+    throw new NodeOperationError(node, 'Groupise API credential is incomplete.', { itemIndex });
   }
   const baseUrl = credentials.baseUrl.trim().replace(/\/+$/, '');
   if (credentials.token.length === 0 || !/^https?:\/\//.test(baseUrl)) {
-    throw new GroupiseNodeError('invalid_credential', 'Groupise API credential is incomplete.');
+    throw new NodeOperationError(node, 'Groupise API credential is incomplete.', { itemIndex });
   }
   return baseUrl;
 }
 
 async function sendMessage(
+  context: IExecuteFunctions,
   baseUrl: string,
   token: string,
   request: SendMessageRequest,
   idempotencyKey: string,
+  itemIndex: number,
 ): Promise<Record<string, unknown>> {
   const headers = new Headers({
     Accept: 'application/json',
@@ -145,20 +181,26 @@ async function sendMessage(
       body: JSON.stringify(request),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
-  } catch {
-    throw new GroupiseNodeError('api_error', 'Groupise API request failed.');
+  } catch (error) {
+    throw new NodeApiError(context.getNode(), error as unknown as JsonObject, {
+      message: 'Groupise API request failed.',
+      itemIndex,
+    });
   }
 
   if (!response.ok) {
-    throw new GroupiseNodeError(
-      'api_error',
-      `Groupise API request failed with HTTP ${response.status}.`,
-    );
+    throw new NodeApiError(context.getNode(), { status: response.status } as JsonObject, {
+      message: `Groupise API request failed with HTTP ${response.status}.`,
+      httpCode: String(response.status),
+      itemIndex,
+    });
   }
 
   const payload: unknown = await response.json().catch(() => undefined);
   if (!isRecord(payload) || !isRecord(payload.data)) {
-    throw new GroupiseNodeError('api_error', 'Groupise API returned an invalid response.');
+    throw new NodeOperationError(context.getNode(), 'Groupise API returned an invalid response.', {
+      itemIndex,
+    });
   }
   return payload.data;
 }

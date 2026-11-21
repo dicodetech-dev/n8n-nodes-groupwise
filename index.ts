@@ -1,17 +1,17 @@
 import type { ICredentialType, INodeType } from 'n8n-workflow';
 import { GroupiseApi } from './credentials/GroupiseApi.credentials.js';
-import { GroupiseWebhook } from './credentials/GroupiseWebhook.credentials.js';
-import { GroupiseSend } from './nodes/GroupiseSend.node.js';
-import { GroupiseTrigger } from './nodes/GroupiseTrigger.node.js';
+import { GroupiseWebhookApi } from './credentials/GroupiseWebhookApi.credentials.js';
+import { GroupiseSend } from './nodes/GroupiseSend/GroupiseSend.node.js';
+import { GroupiseTrigger } from './nodes/GroupiseTrigger/GroupiseTrigger.node.js';
 
-export const credentialTypes: ICredentialType[] = [new GroupiseApi(), new GroupiseWebhook()];
+export const credentialTypes: ICredentialType[] = [new GroupiseApi(), new GroupiseWebhookApi()];
 
 export const nodeTypes: INodeType[] = [new GroupiseTrigger(), new GroupiseSend()];
 
 export { GroupiseApi } from './credentials/GroupiseApi.credentials.js';
-export { GroupiseWebhook } from './credentials/GroupiseWebhook.credentials.js';
-export { GroupiseSend } from './nodes/GroupiseSend.node.js';
-export { GroupiseTrigger } from './nodes/GroupiseTrigger.node.js';
+export { GroupiseWebhookApi } from './credentials/GroupiseWebhookApi.credentials.js';
+export { GroupiseSend } from './nodes/GroupiseSend/GroupiseSend.node.js';
+export { GroupiseTrigger } from './nodes/GroupiseTrigger/GroupiseTrigger.node.js';
 export { GroupiseNodeError, type GroupiseErrorCode } from './errors.js';
 export {
   DEFAULT_REPLAY_WINDOW_SECONDS,

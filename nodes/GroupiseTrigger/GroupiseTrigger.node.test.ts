@@ -1,9 +1,10 @@
 import { createHmac } from 'node:crypto';
-import type { IncomingHttpHeaders } from 'node:http';
 import type { IDataObject, IWebhookFunctions } from 'n8n-workflow';
 import { describe, expect, it } from 'vitest';
-import { WEBHOOK_HEADERS } from '../verification.js';
+import { WEBHOOK_HEADERS } from '../../verification.js';
 import { GroupiseTrigger } from './GroupiseTrigger.node.js';
+
+type WebhookHeaders = Record<string, string | string[] | undefined>;
 
 const secret = '<webhook-secret-placeholder>';
 const envelope = {
@@ -63,7 +64,7 @@ describe('GroupiseTrigger', () => {
 
 async function runWebhook(options: {
   rawBody: string;
-  headers: IncomingHttpHeaders;
+  headers: WebhookHeaders;
   replayState: IDataObject;
 }) {
   const node = new GroupiseTrigger();
@@ -75,6 +76,7 @@ async function runWebhook(options: {
   const context = {
     getCredentials: async () => ({ secret, replayWindowSeconds: 300 }),
     getHeaderData: () => options.headers,
+    getNode: () => ({ name: 'Groupise Trigger', type: 'n8n-nodes-groupise.groupiseTrigger' }),
     getRequestObject: () => ({ rawBody: options.rawBody }),
     getWorkflowStaticData: () => options.replayState,
   } as unknown as IWebhookFunctions;
@@ -82,7 +84,7 @@ async function runWebhook(options: {
   return webhook.call(context);
 }
 
-function signedHeaders(body: string): IncomingHttpHeaders {
+function signedHeaders(body: string): WebhookHeaders {
   const timestamp = String(Math.floor(Date.now() / 1000));
   const digest = createHmac('sha256', secret).update(`${timestamp}.${body}`).digest('hex');
   return {

@@ -23,9 +23,9 @@ Create a **Groupise API** credential with:
 - **API Base URL**: your Laravel API base URL, including `/api/v1`
 - **API Token**: a user-scoped Sanctum token with the message send ability
 
-### Groupise Webhook
+### Groupise Webhook API
 
-Create a **Groupise Webhook** credential with:
+Create a **Groupise Webhook API** credential with:
 
 - **Webhook Secret**: the secret from the matching Laravel webhook subscription
 - **Replay Window (seconds)**: accepted clock skew, default `300`
@@ -38,7 +38,7 @@ Never store either credential in node parameters.
 
 Starts a workflow when Laravel delivers a signed webhook. The node verifies the `x-groupwise-event-id`, `x-groupwise-timestamp`, `x-groupwise-signature`, and `x-groupwise-delivery-id` headers against the raw request body, enforces the replay window, and emits only the verified envelope plus `delivery_id`.
 
-The webhook path is `groupise`. Use the n8n webhook URL shown by the trigger as the Laravel webhook subscription URL.
+The webhook path is `groupise`. Use the n8n webhook URL shown by the trigger as the Laravel webhook subscription URL. Laravel owns webhook subscription registration and deletion; this trigger is a receiver-only webhook.
 
 ### Groupise Send Message
 
